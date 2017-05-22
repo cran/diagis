@@ -3,12 +3,12 @@
 #' Computes a weighted mean of a vector, matrix, or a three dimensional array.
 #' 
 #' @export
-#' @param x A numeric vector, matrix or three dimensional array.
-#' For matrix, the mean is computed for each column, and 
+#' @param x A numeric vector, matrix, three dimensional array, or an \code{mcmc} object from
+#' the \code{coda} package. For matrix, the mean is computed for each column, and 
 #' for array the sweep is done over the third dimension.
 #' @param w A numeric vector of non-negative weights. Will be automatically normalised to sum to one.
 #' @param na.rm If \code{TRUE}, \code{NA} values in \code{x} (and corresponding weights in \code{w}) are
-#' omitted from the computation. Default is \code{FALSE}.
+#' omitted from the computation. Default is \code{FALSE}. Only used in vector methods.
 #' @return A weighted mean.
 weighted_mean <- function(x, w, na.rm) {
   if (!(typeof(w) %in% c("integer", "double"))) {
@@ -17,29 +17,48 @@ weighted_mean <- function(x, w, na.rm) {
   UseMethod("weighted_mean", x)
 }
 #' @export
+#' @method weighted_mean ts
+weighted_mean.ts <- function(x, w, na.rm = FALSE) {
+  weighted_mean(x = as.numeric(x), w = w, na.rm = na.rm)
+}
+#' @export
+#' @method weighted_mean mcmc
+weighted_mean.mcmc <- function(x, w, na.rm = FALSE) {
+  dimx <- dim(x)
+  if (is.null(dimx)) {
+    weighted_mean.numeric(x, w, na.rm)
+  } else {
+    if (length(dimx) == 2) {
+      weighted_mean.matrix(x, w, na.rm)
+    } else {
+      weighted_mean.array(x, w, na.rm)
+    }
+  }
+}
+
+#' @export
 #' @method weighted_mean numeric
 weighted_mean.numeric <- function(x, w, na.rm = FALSE) {
   
   if (length(x) != length(w)) stop("'x' and 'w' have unequal lengths. ")
-
+  start <- which(w > 0)[1]
   if (na.rm) {
-    ind <- !is.na(x)
-    arma_weighted_mean(x[ind], w[ind])
+    ind <- !is.na(x[start:length(w)])
+    arma_weighted_mean(x[start:length(w)][ind], w[start:length(w)][ind])
   } else {
-    arma_weighted_mean(x, w)
+    arma_weighted_mean(x[start:length(w)], w[start:length(w)])
   }
 }
 #' @export
 #' @method weighted_mean matrix
 weighted_mean.matrix<- function(x, w, na.rm = FALSE) {
-
-  if (nrow(x) != length(w)) stop("Length of 'w' is not equal to the number of rows in 'x'. ")
   
+  if (nrow(x) != length(w)) stop("Length of 'w' is not equal to the number of rows in 'x'. ")
+  start <- which(w > 0)[1]
   if (na.rm) {
     warning("Argument 'na.rm' ignored. ")
-    arma_weighted_mean_vec(x, w)
   } else {
-    arma_weighted_mean_vec(x, w)
+    arma_weighted_mean_vec(x[start:length(w),], w[start:length(w)])
   }
 }
 #' @export
@@ -48,13 +67,12 @@ weighted_mean.array<- function(x, w, na.rm = FALSE) {
   
   if (length(dim(x)) != 3) stop("'x' must be three dimensional. ")
   if (dim(x)[3] != length(w)) stop("Length of 'w' is not equal to the third dimension of 'x'. ")
-  
+  start <- which(w > 0)[1]
   if (na.rm) {
     warning("Argument 'na.rm' ignored. ")
-    arma_weighted_mean_mat(x, w)
-  } else {
-    arma_weighted_mean_mat(x, w)
   }
+  arma_weighted_mean_mat(x[,,start:length(w)], w[start:length(w)])
+  
 }
 #' Running mean
 #' 
@@ -67,6 +85,25 @@ weighted_mean.array<- function(x, w, na.rm = FALSE) {
 #' @return A vector containing the recursive mean estimates.
 running_mean <- function(x, na.rm) {
   UseMethod("running_mean", x)
+}
+#' @export
+#' @method running_mean ts
+running_mean.ts <- function(x, na.rm = FALSE) {
+  running_mean(x = as.numeric(x), na.rm = na.rm)
+}
+#' @export
+#' @method running_mean mcmc
+running_mean.mcmc <- function(x, na.rm = FALSE) {
+  dimx <- dim(x)
+  if (is.null(dimx)) {
+    running_mean(x, na.rm)
+  } else {
+    if (length(dimx) == 2) {
+      running_mean.matrix(x, na.rm)
+    } else {
+      running_mean(x, na.rm)
+    }
+  }
 }
 #' @export
 #' @method running_mean numeric
@@ -83,10 +120,8 @@ running_mean.numeric <- function(x, na.rm = FALSE) {
 running_mean.matrix <- function(x, na.rm = FALSE) {
   if (na.rm) {
     warning("Argument 'na.rm' ignored. ")
-    arma_running_mean_vec(x)
-  } else {
-    arma_running_mean_vec(x)
   }
+  arma_running_mean_vec(x)
 }
 #' Running weighted mean
 #'
@@ -102,16 +137,35 @@ running_weighted_mean <- function(x, w, na.rm) {
   UseMethod("running_weighted_mean", x)
 }
 #' @export
+#' @method running_weighted_mean ts
+running_weighted_mean.ts <- function(x, w, na.rm = FALSE) {
+  running_weighted_mean(x = as.numeric(x), w = w, na.rm = na.rm)
+}
+#' @export
+#' @method running_weighted_mean mcmc
+running_weighted_mean.mcmc <- function(x, w, na.rm = FALSE) {
+  dimx <- dim(x)
+  if (is.null(dimx)) {
+    running_weighted_mean.numeric(x, w, na.rm)
+  } else {
+    if (length(dimx) == 2) {
+      running_weighted_mean.matrix(x, w, na.rm)
+    } else {
+      running_weighted_mean(x, w, na.rm)
+    }
+  }
+}
+#' @export
 #' @method running_weighted_mean numeric
 running_weighted_mean.numeric <- function(x, w, na.rm = FALSE) {
   
-    if (length(x) != length(w)) stop("'x' and 'w' have unequal lengths. ")
-  
+  if (length(x) != length(w)) stop("'x' and 'w' have unequal lengths. ")
+  start <- which(w > 0)[1]
   if (na.rm) {
-    ind <- !is.na(x)
-    arma_running_weighted_mean(x[ind], w[ind])
+    ind <- !is.na(x[start:length(w)])
+    arma_running_weighted_mean(x[start:length(w)][ind], w[start:length(w)][ind])
   } else {
-    arma_running_weighted_mean(x, w)
+    arma_running_weighted_mean(x[start:length(w)], w[start:length(w)])
   }
 }
 #' @export
@@ -119,11 +173,9 @@ running_weighted_mean.numeric <- function(x, w, na.rm = FALSE) {
 running_weighted_mean.matrix <- function(x, w, na.rm = FALSE) {
   
   if (nrow(x) != length(w)) stop("Length of 'w' is not equal to the number of rows in 'x'. ")
-  
+  start <- which(w > 0)[1]
   if (na.rm) {
     warning("Argument 'na.rm' ignored. ")
-    arma_running_weighted_mean_vec(x, w)
-  } else {
-    arma_running_weighted_mean_vec(x, w)
-  }
+  } 
+  arma_running_weighted_mean_vec(x[start:length(w),], w[start:length(w)])
 }
