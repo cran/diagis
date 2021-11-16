@@ -1,3 +1,13 @@
+diagis 0.2.1 (Release date: 2021-11-16)
+==============
+* Fixed some URLs.
+
+diagis 0.2.0 (Release date: 2021-11-15)
+==============
+
+* Added a function weighted_quantile for weighted quantiles.
+* Minor tweaks in documentation, added explanation of weighted quantiles.
+
 diagis 0.1.5 (Release date: 2020-05-24)
 ==============
 
