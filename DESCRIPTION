@@ -2,7 +2,7 @@ Package: diagis
 Type: Package
 Title: Diagnostic Plot and Multivariate Summary Statistics of Weighted
         Samples from Importance Sampling
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: 
     person(given = "Jouni",
            family = "Helske",
@@ -22,8 +22,8 @@ RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 Encoding: UTF-8
 NeedsCompilation: yes
-Packaged: 2021-11-16 08:04:15 UTC; jovetale
+Packaged: 2021-11-29 12:44:21 UTC; jovetale
 Author: Jouni Helske [aut, cre] (<https://orcid.org/0000-0001-7130-793X>)
 Maintainer: Jouni Helske <jouni.helske@iki.fi>
 Repository: CRAN
-Date/Publication: 2021-11-16 08:40:06 UTC
+Date/Publication: 2021-11-29 16:10:02 UTC

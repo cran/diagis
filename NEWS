@@ -1,3 +1,8 @@
+diagis 0.2.2 (Release date: 2021-11-30)
+==============
+* All functions now check that weights are non-negative and numeric, and that 
+  at least one weight is positive.
+
 diagis 0.2.1 (Release date: 2021-11-16)
 ==============
 * Fixed some URLs.
